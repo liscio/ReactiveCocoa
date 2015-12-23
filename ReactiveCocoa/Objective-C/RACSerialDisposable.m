@@ -7,7 +7,7 @@
 //
 
 #import "RACSerialDisposable.h"
-#import <libkern/OSAtomic.h>
+#import <pthread.h>
 
 @interface RACSerialDisposable () {
 	// The receiver's `disposable`. This variable must only be referenced while
@@ -18,11 +18,11 @@
 	// while _spinLock is held.
 	BOOL _disposed;
 
-	// A spinlock to protect access to _disposable and _disposed.
+	// A mutex to protect access to _disposable and _disposed.
 	//
 	// It must be used when _disposable is mutated or retained and when _disposed
 	// is mutated.
-	OSSpinLock _spinLock;
+	NSRecursiveLock *_lock;
 }
 
 @end
@@ -38,9 +38,9 @@
 - (RACDisposable *)disposable {
 	RACDisposable *result;
 
-	OSSpinLockLock(&_spinLock);
+	[_lock lock];
 	result = _disposable;
-	OSSpinLockUnlock(&_spinLock);
+	[_lock unlock];
 
 	return result;
 }
@@ -61,6 +61,7 @@
 	self = [self init];
 	if (self == nil) return nil;
 
+	_lock = [[NSRecursiveLock alloc] init];
 	self.disposable = [RACDisposable disposableWithBlock:block];
 
 	return self;
@@ -72,13 +73,13 @@
 	RACDisposable *existingDisposable;
 	BOOL alreadyDisposed;
 
-	OSSpinLockLock(&_spinLock);
+	[_lock lock];
 	alreadyDisposed = _disposed;
 	if (!alreadyDisposed) {
 		existingDisposable = _disposable;
 		_disposable = newDisposable;
 	}
-	OSSpinLockUnlock(&_spinLock);
+	[_lock unlock];
 
 	if (alreadyDisposed) {
 		[newDisposable dispose];
@@ -93,13 +94,13 @@
 - (void)dispose {
 	RACDisposable *existingDisposable;
 
-	OSSpinLockLock(&_spinLock);
+	[_lock lock];
 	if (!_disposed) {
 		existingDisposable = _disposable;
 		_disposed = YES;
 		_disposable = nil;
 	}
-	OSSpinLockUnlock(&_spinLock);
+	[_lock unlock];
 	
 	[existingDisposable dispose];
 }

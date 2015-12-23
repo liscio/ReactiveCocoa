@@ -10,7 +10,8 @@ import Foundation
 
 /// An atomic variable.
 public final class Atomic<Value> {
-	private var spinLock = OS_SPINLOCK_INIT
+	private var _attribute = pthread_mutexattr_t()
+	private var _mutex = pthread_mutex_t()
 	private var _value: Value
 	
 	/// Atomically gets or sets the value of the variable.
@@ -26,15 +27,24 @@ public final class Atomic<Value> {
 	
 	/// Initializes the variable with the given initial value.
 	public init(_ value: Value) {
+		pthread_mutexattr_init(&_attribute)
+		pthread_mutexattr_settype(&_attribute, PTHREAD_MUTEX_RECURSIVE)
+		pthread_mutex_init(&_mutex, &_attribute)
+
 		_value = value
 	}
 	
+	deinit {
+		pthread_mutexattr_destroy(&_attribute)
+		pthread_mutex_destroy(&_mutex)
+	}
+	
 	private func lock() {
-		OSSpinLockLock(&spinLock)
+		pthread_mutex_lock(&_mutex)
 	}
 	
 	private func unlock() {
-		OSSpinLockUnlock(&spinLock)
+		pthread_mutex_unlock(&_mutex)
 	}
 	
 	/// Atomically replaces the contents of the variable.
