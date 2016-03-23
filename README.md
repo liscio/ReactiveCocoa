@@ -23,8 +23,7 @@ own](https://github.com/ReactiveCocoa/ReactiveCocoa/issues/new)!
 
 #### Compatibility
 
-This documents the RAC 4 (currently alpha) which targets Swift 2.x. For
-Swift 1.2 support see the [RAC
+This documents the RAC 4 which targets `Swift 2.1.x`. For `Swift 1.2` support see [RAC
 3](https://github.com/ReactiveCocoa/ReactiveCocoa/tree/v3.0.0).
 
 _Many thanks to [Rheinfabrik](http://www.rheinfabrik.de) for generously sponsoring the development of ReactiveCocoa 3!_
@@ -310,6 +309,7 @@ ReactiveCocoa to your `Cartfile`:
 ```
 github "ReactiveCocoa/ReactiveCocoa"
 ```
+Make sure to add both `ReactiveCocoa.framework` and `Result.framework` to "Linked Frameworks and Libraries" and "copy-frameworks" Build Phases.
 
 If you would prefer to use [CocoaPods](https://cocoapods.org), there are some
 [unofficial podspecs](https://github.com/CocoaPods/Specs/tree/master/Specs/ReactiveCocoa)

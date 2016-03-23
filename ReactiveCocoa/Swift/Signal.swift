@@ -283,7 +283,7 @@ extension SignalType {
 			return self.observe { event in
 				if case let .Next(value) = event {
 					if taken < count {
-						taken++
+						taken += 1
 						observer.sendNext(value)
 					}
 
@@ -442,7 +442,7 @@ extension SignalType {
 
 			return self.observe { event in
 				if case .Next = event where skipped < count {
-					skipped++
+					skipped += 1
 				} else {
 					observer.action(event)
 				}
@@ -724,16 +724,19 @@ extension SignalType {
 	@warn_unused_result(message="Did you forget to call `observe` on the signal?")
 	public func skipRepeats(isRepeat: (Value, Value) -> Bool) -> Signal<Value, Error> {
 		return self
-			.map(Optional.init)
-			.combinePrevious(nil)
-			.filter { a, b in
-				if let a = a, b = b where isRepeat(a, b) {
-					return false
-				} else {
-					return true
+			.scan((nil, false)) { (accumulated: (Value?, Bool), next: Value) -> (value: Value?, repeated: Bool) in
+				switch accumulated.0 {
+				case .None:
+					return (next, false)
+				case let .Some(prev) where isRepeat(prev, next):
+					return (prev, true)
+				case .Some:
+					return (Optional.Some(next), false)
 				}
 			}
-			.map { $0.1! }
+			.filter { !$0.repeated }
+			.map { $0.value }
+			.ignoreNil()
 	}
 
 	/// Does not forward any values from `self` until `predicate` returns false,
