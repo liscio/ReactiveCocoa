@@ -37,18 +37,22 @@ extension Reactivity where Reactant: UIControl {
 		}
 	}
 
-	#if os(iOS)
 	/// Creates a bindable property to wrap a control's value.
 	///
 	/// This property uses `UIControlEvents.ValueChanged` and `UIControlEvents.EditingChanged`
 	/// events to detect changes and keep the value up-to-date.
 	//
-	internal func value<T>(getter: @escaping (Reactant) -> T, setter: @escaping (Reactant, T) -> ()) -> MutableProperty<T> {
-		return associatedProperty(reactant, key: &valueChangedKey, initial: getter, setter: setter) { property in
-			property <~ self.trigger(for: [.valueChanged, .editingChanged]).map(getter)
+	internal func makePropertyProxy<T>(getter: @escaping (Reactant) -> T, setter: @escaping (Reactant, T) -> ()) -> MutablePropertyFacade<T> {
+		return associatedObject(reactant, key: &valueChangedKey) { proxy in
+			let signal = trigger(for: [.valueChanged, .editingChanged]).map(getter)
+
+			return MutablePropertyFacade(get: { [reactant] in getter(reactant) },
+			                            set: { [reactant] in setter(reactant, $0) },
+			                            changes: signal,
+			                            lifetime: reactant.rac.lifetime,
+			                            setOn: UIScheduler())
 		}
 	}
-	#endif
 
 	/// Wraps a control's `enabled` state in a bindable property.
 	public var isEnabled: BindingTarget<Bool> {

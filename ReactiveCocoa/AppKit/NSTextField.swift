@@ -11,12 +11,21 @@ import AppKit
 import enum Result.NoError
 
 extension Reactivity where Reactant: NSTextField {
-	/// Sends the field's string value whenever it changes.
-	public var textSignal: SignalProducer<String, NoError> {
-		return NotificationCenter.default
+	public var text: MutablePropertyFacade<String> {
+		var signal: Signal<String, NoError>!
+
+		NotificationCenter.default
 			.rac_notifications(forName: .NSControlTextDidChange, object: reactant)
-			.map { notification in
-				(notification.object as! NSTextField).stringValue
-			}
+			.take(during: lifetime)
+			.map { ($0.object as! NSTextField).stringValue }
+			.startWithSignal { innerSignal, _ in signal = innerSignal }
+
+		return MutablePropertyFacade(get: { [reactant] in reactant.stringValue },
+		                             set: { [reactant] in reactant.stringValue = $0 },
+		                             changes: signal,
+		                             lifetime: lifetime,
+		                             setOn: UIScheduler())
 	}
 }
+
+private var textKey = 0
