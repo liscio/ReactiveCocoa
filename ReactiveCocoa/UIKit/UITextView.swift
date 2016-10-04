@@ -12,23 +12,16 @@ import enum Result.NoError
 
 extension Reactivity where Reactant: UITextView {
 	/// Sends the textView's string value whenever it changes.
-	public var text: MutablePropertyFacade<String> {
-		return associatedObject(reactant, key: &textKey) { property in
-			var signal: Signal<String, NoError>!
+	public var text: ControlSubject<String> {
+		var signal: Signal<String, NoError>!
 
-			NotificationCenter.default
-				.rac_notifications(forName: .UITextViewTextDidChange, object: reactant)
-				.take(during: reactant.rac.lifetime)
-				.map { ($0.object as! UITextView).text! }
-				.startWithSignal { innerSignal, _ in signal = innerSignal }
+		NotificationCenter.default
+			.rac_notifications(forName: .UITextViewTextDidChange, object: reactant)
+			.take(during: reactant.rac.lifetime)
+			.map { ($0.object as! UITextView).text! }
+			.startWithSignal { innerSignal, _ in signal = innerSignal }
 
-			return MutablePropertyFacade(get: { [reactant] in reactant.text! },
-			                             set: { [reactant] in reactant.text = $0 },
-			                             changes: signal,
-			                             lifetime: reactant.rac.lifetime,
-			                             setOn: UIScheduler())
-		}
+		return ControlSubject(signal: signal,
+		                      target: makeBindingTarget { $0.text = $1 })
 	}
 }
-
-private var textKey = 0

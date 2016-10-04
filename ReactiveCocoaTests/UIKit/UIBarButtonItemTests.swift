@@ -28,7 +28,7 @@ class UIBarButtonItemTests: XCTestCase {
         let action = Action<(),(),NoError> {
             SignalProducer(value: ())
         }
-        barButtonItem.rac.action <~ SignalProducer(value: CocoaAction(action, input: ()))
+        barButtonItem.rac.setAction(action)
      }
     
     func testEnabledProperty() {

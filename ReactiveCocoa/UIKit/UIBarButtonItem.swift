@@ -10,26 +10,37 @@ import ReactiveSwift
 import UIKit
 
 extension Reactivity where Reactant: UIBarButtonItem {
-	/// Exposes a property that binds an action to bar button item. The action is set as
-	/// a target of the button. When property changes occur the previous action is
-	/// overwritten. This also binds the enabled state of the action to the `enabled`
-	/// property on the button.
-	public var action: MutableProperty<CocoaAction> {
-		return associatedObject(reactant, key: &actionKey) { host in
-			let initial = CocoaAction.disabled
-			let property = MutableProperty(initial)
+	private var associatedAction: Atomic<ActionContainer?> {
+		return associatedObject(reactant,
+		                        key: &associatedActionKey,
+		                        initial: { _ in Atomic(nil) })
+	}
 
-			property.producer
-				.startWithValues { [weak host] action in
-					host?.target = action
-					host?.action = CocoaAction.selector
+	public func setAction<Input, Output, Error>(_ action: Action<Input, Output, Error>, inputTransform: @escaping (Reactant) -> Input) {
+		associatedAction.modify { associatedAction in
+			let container = ActionContainer(action) { sender in
+				return inputTransform(sender as! Reactant)
 			}
 
-			host.rac.isEnabled <~ property.flatMap(.latest) { $0.isEnabled }
+			reactant.target = container
+			reactant.action = ActionContainer.selector
+			associatedAction = container
+		}
+	}
 
-			return property
+	public func setAction<Output, Error>(_ action: Action<(), Output, Error>) {
+		setAction(action, inputTransform: { _ in })
+	}
+
+	public func removeAction() {
+		associatedAction.modify { associatedAction in
+			if associatedAction != nil {
+				reactant.target = nil
+				reactant.action = nil
+				associatedAction = nil
+			}
 		}
 	}
 }
 
-private var actionKey: UInt8 = 0
+private var associatedActionKey = 0

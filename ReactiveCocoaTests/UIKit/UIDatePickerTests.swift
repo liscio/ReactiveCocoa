@@ -25,7 +25,7 @@ class UIDatePickerTests: XCTestCase {
     }
     
     func testUpdatePickerFromProperty() {
-        picker.rac.date.value = date
+        picker.rac.date.consume(date)
         
         XCTAssertEqual(picker.date, date)
     }

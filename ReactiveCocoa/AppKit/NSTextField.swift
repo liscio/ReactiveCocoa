@@ -11,7 +11,7 @@ import AppKit
 import enum Result.NoError
 
 extension Reactivity where Reactant: NSTextField {
-	public var text: MutablePropertyFacade<String> {
+	public var text: ControlSubject<String> {
 		var signal: Signal<String, NoError>!
 
 		NotificationCenter.default
@@ -20,12 +20,7 @@ extension Reactivity where Reactant: NSTextField {
 			.map { ($0.object as! NSTextField).stringValue }
 			.startWithSignal { innerSignal, _ in signal = innerSignal }
 
-		return MutablePropertyFacade(get: { [reactant] in reactant.stringValue },
-		                             set: { [reactant] in reactant.stringValue = $0 },
-		                             changes: signal,
-		                             lifetime: lifetime,
-		                             setOn: UIScheduler())
+		return ControlSubject(signal: signal,
+		                      target: makeBindingTarget { $0.stringValue = $1 })
 	}
 }
-
-private var textKey = 0

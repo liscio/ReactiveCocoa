@@ -11,7 +11,8 @@ import UIKit
 
 extension Reactivity where Reactant: UIDatePicker {
 	// Wraps a datePicker's `date` value in a bindable property.
-	public var date: MutablePropertyFacade<Date> {
-		return makePropertyProxy(getter: { $0.date }, setter: { $0.date = $1 })
+	public var date: ControlSubject<Date> {
+		return ControlSubject(signal: trigger(for: .valueChanged).map { [unowned reactant] in reactant.date },
+		                      target: makeBindingTarget { $0.date = $1 })
 	}
 }

@@ -11,7 +11,8 @@ import UIKit
 
 extension Reactivity where Reactant: UISwitch {
 	/// Wraps a switch's `on` value in a bindable property.
-	public var isOn: MutablePropertyFacade<Bool> {
-		return makePropertyProxy(getter: { $0.isOn }, setter: { $0.isOn = $1 })
+	public var isOn: ControlSubject<Bool> {
+		return ControlSubject(signal: trigger(for: .valueChanged).map { [unowned reactant] in reactant.isOn },
+		                      target: makeBindingTarget { $0.isOn = $1 })
 	}
 }

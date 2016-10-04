@@ -11,8 +11,8 @@ import UIKit
 
 extension Reactivity where Reactant: UISegmentedControl {
 	/// Wraps a segmentedControls `selectedSegmentIndex` state in a bindable property.
-	public var selectedSegmentIndex: MutablePropertyFacade<Int> {
-		return makePropertyProxy(getter: { $0.selectedSegmentIndex },
-		                         setter: { $0.selectedSegmentIndex = $1 })
+	public var selectedSegmentIndex: ControlSubject<Int> {
+		return ControlSubject(signal: trigger(for: .valueChanged).map { [unowned reactant] in reactant.selectedSegmentIndex },
+		                      target: makeBindingTarget { $0.selectedSegmentIndex = $1 })
 	}
 }

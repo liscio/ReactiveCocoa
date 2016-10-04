@@ -10,14 +10,13 @@ import ReactiveSwift
 import UIKit
 
 extension Reactivity where Reactant: UITextField {
-	/// Wraps a textField's `text` value in a bindable property.
-	public var text: MutablePropertyFacade<String?> {
-		let getter: (UITextField) -> String? = { $0.text }
-		let setter: (UITextField, String?) -> () = { $0.text = $1 }
-
-		return makePropertyProxy(getter: getter, setter: setter)
+	public var text: ControlSubject<String?> {
+		return ControlSubject(signal: trigger(for: .editingDidEnd).map { [unowned reactant] in reactant.text },
+		                      target: makeBindingTarget { $0.text = $1 })
 	}
 
+	public var liveText: ControlSubject<String?> {
+		return ControlSubject(signal: trigger(for: .editingChanged).map { [unowned reactant] in reactant.text },
+		                      target: makeBindingTarget { $0.text = $1 })
+	}
 }
-
-private var textKey: UInt8 = 0

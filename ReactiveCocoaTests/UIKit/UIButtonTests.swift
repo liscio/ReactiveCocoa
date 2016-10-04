@@ -43,7 +43,8 @@ class UIButtonTests: XCTestCase {
         let action = Action<(),(),NoError> {
             SignalProducer(value: ())
         }
-        button.rac.pressed <~ SignalProducer(value: CocoaAction(action, input: ()))
+
+        button.rac.setAction(action, for: .touchUpInside)
     }
 
     func testTitlePropertyDoesntCreateRetainCycle() {
@@ -85,7 +86,7 @@ class UIButtonTests: XCTestCase {
         }
         
         pressed <~ SignalProducer(signal: action.values)
-        button.rac.pressed <~ SignalProducer(value: CocoaAction(action, input: ()))
+        button.rac.setAction(action, for: .touchUpInside)
 
         XCTAssertFalse(pressed.value)
 

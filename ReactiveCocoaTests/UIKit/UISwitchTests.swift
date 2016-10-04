@@ -12,21 +12,24 @@ import ReactiveCocoa
 import Result
 
 class UISwitchTests: XCTestCase {
-    
-    func testOnProperty() {
-        let `switch` = UISwitch(frame: CGRect.zero)
-        `switch`.isOn = false
 
-        let (pipeSignal, observer) = Signal<Bool, NoError>.pipe()
-        `switch`.rac.isOn <~ SignalProducer(signal: pipeSignal)
+	func testOnProperty() {
+		let toggle = UISwitch(frame: CGRect.zero)
+		toggle.isOn = false
 
-        observer.send(value: true)
-        XCTAssertTrue(`switch`.isOn)
-        observer.send(value: false)
-        XCTAssertFalse(`switch`.isOn)
+		let (pipeSignal, observer) = Signal<Bool, NoError>.pipe()
+		toggle.rac.isOn <~ SignalProducer(signal: pipeSignal)
 
-        `switch`.isOn = true
-        `switch`.sendActions(for: .valueChanged)
-        XCTAssertTrue(`switch`.rac.isOn.value)
-    }
+		observer.send(value: true)
+		XCTAssertTrue(toggle.isOn)
+		observer.send(value: false)
+		XCTAssertFalse(toggle.isOn)
+
+		var latestValue: Bool?
+		toggle.rac.isOn.observeValues { latestValue = $0 }
+
+		toggle.isOn = true
+		toggle.sendActions(for: .valueChanged)
+		XCTAssertTrue(latestValue!)
+	}
 }

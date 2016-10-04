@@ -12,20 +12,34 @@ import UIKit
 import XCTest
 
 class UITextFieldTests: XCTestCase {
+	func testTextProperty() {
+		let expectation = self.expectation(description: "Expected `rac_text`'s value to equal to the textField's text")
+		defer { self.waitForExpectations(timeout: 2, handler: nil) }
 
-    func testTextProperty() {
-        let expectation = self.expectation(description: "Expected `rac_text`'s value to equal to the textField's text")
-        defer { self.waitForExpectations(timeout: 2, handler: nil) }
+		let textField = UITextField(frame: CGRect.zero)
+		textField.text = "Test"
 
-        let textField = UITextField(frame: CGRect.zero)
-        textField.text = "Test"
-        
-        textField.rac.text.signal.observeValues { text in
-            XCTAssertEqual(text, textField.text)
-            expectation.fulfill()
-        }
+		textField.rac.text.observeValues { text in
+			XCTAssertEqual(text, textField.text)
+			expectation.fulfill()
+		}
 
-        textField.sendActions(for: .editingChanged)
+		textField.sendActions(for: .editingDidEnd)
+	}
 
-    }
+	func testLiveTextProperty() {
+		let expectation = self.expectation(description: "Expected `rac_text`'s value to equal to the textField's text")
+		defer { self.waitForExpectations(timeout: 2, handler: nil) }
+
+		let textField = UITextField(frame: CGRect.zero)
+		textField.text = "Test"
+
+		textField.rac.liveText.observeValues { text in
+			XCTAssertEqual(text, textField.text)
+			expectation.fulfill()
+		}
+
+		textField.sendActions(for: .editingChanged)
+		
+	}
 }

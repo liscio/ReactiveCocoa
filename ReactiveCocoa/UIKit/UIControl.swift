@@ -10,47 +10,55 @@ import ReactiveSwift
 import UIKit
 import enum Result.NoError
 
-private class UnsafeControlReceiver<Control: UIControl>: NSObject {
-	private let observer: Observer<Control, NoError>
-
-	fileprivate init(observer: Observer<Control, NoError>) {
-		self.observer = observer
-	}
-
-	@objc fileprivate func sendNext(_ receiver: Any?) {
-		observer.send(value: receiver as! Control)
-	}
-}
-
 extension Reactivity where Reactant: UIControl {
-	public func trigger(for events: UIControlEvents) -> Signal<Reactant, NoError> {
+	private var associatedAction: Atomic<(container: ActionContainer, events: UIControlEvents)?> {
+		return associatedObject(reactant,
+		                        key: &associatedActionKey,
+		                        initial: { _ in Atomic(nil) })
+	}
+
+	public func trigger(for controlEvents: UIControlEvents) -> Signal<(), NoError> {
 		return Signal { observer in
 			let receiver = UnsafeControlReceiver(observer: observer)
-			reactant.addTarget(receiver, action: #selector(UnsafeControlReceiver.sendNext), for: events)
+			reactant.addTarget(receiver,
+			                   action: #selector(UnsafeControlReceiver.sendNext),
+			                   for: controlEvents)
 
 			let disposable = reactant.rac.lifetime.ended.observeCompleted(observer.sendCompleted)
 
 			return ActionDisposable { [weak reactant] in
 				disposable?.dispose()
-				reactant?.removeTarget(receiver, action: #selector(UnsafeControlReceiver.sendNext), for: events)
+				reactant?.removeTarget(receiver,
+				                       action: #selector(UnsafeControlReceiver.sendNext),
+				                       for: controlEvents)
 			}
 		}
 	}
 
-	/// Creates a bindable property to wrap a control's value.
-	///
-	/// This property uses `UIControlEvents.ValueChanged` and `UIControlEvents.EditingChanged`
-	/// events to detect changes and keep the value up-to-date.
-	//
-	internal func makePropertyProxy<T>(getter: @escaping (Reactant) -> T, setter: @escaping (Reactant, T) -> ()) -> MutablePropertyFacade<T> {
-		return associatedObject(reactant, key: &valueChangedKey) { proxy in
-			let signal = trigger(for: [.valueChanged, .editingChanged]).map(getter)
+	public func setAction<Input, Output, Error>(_ action: Action<Input, Output, Error>, for controlEvents: UIControlEvents, inputTransform: @escaping (Reactant) -> Input) {
+		associatedAction.modify { associatedAction in
+			if let old = associatedAction {
+				reactant.removeTarget(old.container, action: ActionContainer.selector, for: old.events)
+			}
 
-			return MutablePropertyFacade(get: { [reactant] in getter(reactant) },
-			                            set: { [reactant] in setter(reactant, $0) },
-			                            changes: signal,
-			                            lifetime: reactant.rac.lifetime,
-			                            setOn: UIScheduler())
+			let container = ActionContainer(action) { sender in
+				return inputTransform(sender as! Reactant)
+			}
+
+			reactant.addTarget(container, action: ActionContainer.selector, for: controlEvents)
+			associatedAction = (container, controlEvents)
+		}
+	}
+
+	public func setAction<Output, Error>(_ action: Action<(), Output, Error>, for controlEvents: UIControlEvents) {
+		setAction(action, for: controlEvents, inputTransform: { _ in })
+	}
+
+	public func removeAction() {
+		associatedAction.modify { associatedAction in
+			if let old = associatedAction {
+				reactant.removeTarget(old.container, action: ActionContainer.selector, for: old.events)
+			}
 		}
 	}
 
@@ -70,4 +78,16 @@ extension Reactivity where Reactant: UIControl {
 	}
 }
 
-private var valueChangedKey: UInt8 = 0
+internal class UnsafeControlReceiver: NSObject {
+	private let observer: Observer<(), NoError>
+
+	fileprivate init(observer: Observer<(), NoError>) {
+		self.observer = observer
+	}
+
+	@objc fileprivate func sendNext() {
+		observer.send(value: ())
+	}
+}
+
+private var associatedActionKey = 0
