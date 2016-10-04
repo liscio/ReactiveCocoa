@@ -35,23 +35,9 @@ extension Reactivity where Reactant: UIViewController {
 		return reactant.trigger(for: #selector(UIViewController.viewWillAppear(_:)))
 	}
 
-	public typealias DismissingCompletion = ((Void) -> Void)?
-	public typealias DismissingInformation = (animated: Bool, completion: DismissingCompletion)
-
-	/// Wraps a viewController's `dismissViewControllerAnimated` function in a bindable property.
-	/// It mimics the same input as `dismissViewControllerAnimated`: a `Bool` flag for the animation
-	/// and a `(Void -> Void)?` closure for `completion`.
-	/// E.g:
-	/// ```
-	/// //Dismissed with animation (`true`) and `nil` completion
-	/// viewController.dismissAnimated <~ aProducer.map { _ in (true, nil) }
-	/// ```
-	/// The dismissal observation can be made either with binding (example above)
-	/// or `viewController.dismissViewControllerAnimated(true, completion: nil)`
-	public var dismissAnimated: BindingTarget<DismissingInformation> {
-		/// TODO: Convert into `Action`?
-		return makeBindingTarget { $0.dismiss(animated: $1.animated, completion: $1.completion) }
+	/// A trigger that sends a `next` event upon completion of dismissal of
+	/// the presented view controller.
+	public var dismissedPresented: Signal<(), NoError> {
+		return reactant.trigger(for: #selector(UIViewController.dismiss(animated:completion:)))
 	}
 }
-
-private var dismissModally: UInt8 = 0

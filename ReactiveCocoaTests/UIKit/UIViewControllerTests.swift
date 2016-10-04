@@ -80,27 +80,9 @@ class UIViewControllerTests: XCTestCase {
         
         viewController.viewWillAppear(true)
     }
-    
-    func testDismissViewController_via_property() {
-        
-        let expectation = self.expectation(description: "Expected rac_dismissModally to be triggered")
-        defer { self.waitForExpectations(timeout: 2, handler: nil) }
-        
-        let viewController = UIViewController()
-        _viewController = viewController
-        
-			viewController
-				.trigger(for: #selector(UIViewController.dismiss(animated:completion:)))
-				.signal
-				.observeValues { _ in
-            expectation.fulfill()
-        }
-                
-        viewController.rac.dismissAnimated <~ SignalProducer(value: (animated: true, completion: nil))
-    }
-    
+
     func testDismissViewController_via_cocoaDismiss() {
-        
+
         let expectation = self.expectation(description: "Expected rac_dismissModally to be triggered")
         defer { self.waitForExpectations(timeout: 2, handler: nil) }
         
