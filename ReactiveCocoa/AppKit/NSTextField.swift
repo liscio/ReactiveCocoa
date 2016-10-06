@@ -30,7 +30,7 @@ extension Reactivity where Reactant: NSTextField {
 
 	/// Provides continuous changes to the control's stringValue, supplying new
 	/// values as the user types text.
-	public var continuousStringValue: BindingOutput<String> {
+	public var continuousStringValue: Signal<String, NoError> {
 		var signal: Signal<String, NoError>!
 
 		NotificationCenter.default
@@ -39,6 +39,6 @@ extension Reactivity where Reactant: NSTextField {
 			.map { ($0.object as! NSTextField).stringValue }
 			.startWithSignal { innerSignal, _ in signal = innerSignal }
 
-		return BindingOutput(signal: signal)
+		return signal
 	}
 }

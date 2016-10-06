@@ -12,7 +12,7 @@ import enum Result.NoError
 
 extension Reactivity where Reactant: NSControl {
 	/// Accepts values to modify the enabled state of the control
-	public var isEnabled: BindingInput<Bool> {
-		return BindingInput(target: makeBindingTarget { $0.isEnabled = $1 })
+	public var isEnabled: BindingTarget<Bool> {
+		return makeBindingTarget { $0.isEnabled = $1 }
 	}
 }
