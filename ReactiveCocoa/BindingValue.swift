@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import ReactiveSwift
+import enum Result.NoError
 
 /// Represents a value to be bound to a UI control, including common placeholders for empty or multiple selections.
 public enum BindingValue<ValueType> {
@@ -90,4 +92,26 @@ public extension BindingValue where ValueType : Equatable {
             }
         }
     }
+}
+
+extension PropertyProtocol where Value: OptionalProtocol {	
+	/// Maps each property from `self` to a new property, then flattens the
+	/// resulting properties (into a single property), according to the
+	/// semantics of the given strategy.
+	///
+	/// - parameters:
+	///   - strategy: The preferred flatten strategy.
+	///   - transform: The transform to be applied on `self` before flattening.
+	///
+	/// - returns: A property that sends the values of its inner properties.
+	public func flatMap<P: PropertyProtocol, T: Equatable>(_ strategy: FlattenStrategy, transform: @escaping (Value.Wrapped) -> P) -> Property<BindingValue<T>> where P.Value == BindingValue<T> {
+		return self.flatMap(strategy) { (myValue: Value) -> Property<BindingValue<T>> in
+			switch myValue.optional {
+			case let .some(value):
+				return Property(transform(value))
+			default:
+				return Property(value: .noSelection)
+			}
+		}
+	}
 }
