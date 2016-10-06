@@ -22,6 +22,7 @@
 		7DFBED281CDB8DE300EE435B /* DynamicPropertySpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A2260D1A72F16D00D33B74 /* DynamicPropertySpec.swift */; };
 		7DFBED6D1CDB8F7D00EE435B /* SignalProducerNimbleMatchers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA6B94A1A76044800C846D1 /* SignalProducerNimbleMatchers.swift */; };
 		8305361E1DA67C2200E58964 /* NSControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8305361D1DA67C2200E58964 /* NSControl.swift */; };
+		830536201DA6B22300E58964 /* BindingValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8305361F1DA6B22300E58964 /* BindingValue.swift */; };
 		9A090C081D9FF6E400EE97CA /* Reactive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A090C071D9FF6E400EE97CA /* Reactive.swift */; };
 		9A090C091D9FF6E400EE97CA /* Reactive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A090C071D9FF6E400EE97CA /* Reactive.swift */; };
 		9A090C0A1D9FF6E400EE97CA /* Reactive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A090C071D9FF6E400EE97CA /* Reactive.swift */; };
@@ -234,6 +235,7 @@
 		57A4D2471BA13F9700F7D4B1 /* tvOS-StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "tvOS-StaticLibrary.xcconfig"; sourceTree = "<group>"; };
 		7DFBED031CDB8C9500EE435B /* ReactiveCocoaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ReactiveCocoaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8305361D1DA67C2200E58964 /* NSControl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSControl.swift; sourceTree = "<group>"; };
+		8305361F1DA6B22300E58964 /* BindingValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BindingValue.swift; sourceTree = "<group>"; };
 		9A090C071D9FF6E400EE97CA /* Reactive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reactive.swift; sourceTree = "<group>"; };
 		9A1D05DF1D93E99100ACF44C /* Association.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Association.swift; sourceTree = "<group>"; };
 		9A1D05E41D93E9E200ACF44C /* Reusable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reusable.swift; sourceTree = "<group>"; };
@@ -529,6 +531,7 @@
 				9A1D06761D9415FB00ACF44C /* RACObjCRuntimeUtilities.m */,
 				9A1D05DF1D93E99100ACF44C /* Association.swift */,
 				9ADE4A801DA454DB005C2AC8 /* ActionContainer.swift */,
+				8305361F1DA6B22300E58964 /* BindingValue.swift */,
 				9ADE4A7B1DA44A9E005C2AC8 /* CocoaAction.swift */,
 				CD0C45DD1CC9A288009F5BF0 /* DynamicProperty.swift */,
 				9AD0F0691D48BA4800ADFAB7 /* NSObject+KeyValueObserving.swift */,
@@ -1025,6 +1028,7 @@
 				9A1D065B1D93EC6E00ACF44C /* NSObject+Intercepting.swift in Sources */,
 				8305361E1DA67C2200E58964 /* NSControl.swift in Sources */,
 				4A0E10FF1D2A92720065D310 /* NSObject+Lifetime.swift in Sources */,
+				830536201DA6B22300E58964 /* BindingValue.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
