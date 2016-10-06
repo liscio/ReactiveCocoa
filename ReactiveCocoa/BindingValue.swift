@@ -10,8 +10,16 @@ import Foundation
 import ReactiveSwift
 import enum Result.NoError
 
+public protocol BindingValueProtocol {
+	associatedtype Wrapped
+
+	init(_ value: Wrapped)
+}
+
 /// Represents a value to be bound to a UI control, including common placeholders for empty or multiple selections.
-public enum BindingValue<ValueType> {
+public enum BindingValue<ValueType>: BindingValueProtocol {
+	public typealias Wrapped = ValueType
+
     /// A placeholder to represent the "No Selection" case
     case noSelection
     
@@ -52,6 +60,10 @@ public enum BindingValue<ValueType> {
                 return true
         }
     }
+
+	public init(_ value: Wrapped) {
+		self = .value(value)
+	}
 }
 
 extension BindingValue : CustomStringConvertible {
@@ -115,3 +127,44 @@ extension PropertyProtocol where Value: OptionalProtocol {
 		}
 	}
 }
+
+extension BindingTargetProtocol where Self.Value: BindingValueProtocol {
+	/// Binds a signal to a target, updating the target's value to the latest
+	/// value sent by the signal.
+	///
+	/// - note: The binding will automatically terminate when the target is
+	///         deinitialized, or when the signal sends a `completed` event.
+	///
+	/// ````
+	/// let property = MutableProperty(0)
+	/// let signal = Signal({ /* do some work after some time */ })
+	/// property <~ signal
+	/// ````
+	///
+	/// ````
+	/// let property = MutableProperty(0)
+	/// let signal = Signal({ /* do some work after some time */ })
+	/// let disposable = property <~ signal
+	/// ...
+	/// // Terminates binding before property dealloc or signal's
+	/// // `completed` event.
+	/// disposable.dispose()
+	/// ````
+	///
+	/// - parameters:
+	///   - target: A target to be bond to.
+	///   - signal: A signal to bind.
+	///
+	/// - returns: A disposable that can be used to terminate binding before the
+	///            deinitialization of the target or the signal's `completed`
+	///            event.
+	@discardableResult
+	public static func <~ <Source: SignalProtocol>(target: Self, signal: Source) -> Disposable? where Source.Value == Value.Wrapped, Source.Error == NoError {
+		return signal
+			.take(during: target.lifetime)
+			.observeValues { [weak target] value in
+				target?.consume(Value(value))
+			}
+	}
+}
+
