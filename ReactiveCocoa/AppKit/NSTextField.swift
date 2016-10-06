@@ -11,11 +11,17 @@ import AppKit
 import enum Result.NoError
 
 extension Reactivity where Reactant: NSTextField {
-	/// Provides and accepts changes to the control's stringValue. 
+	/// Make user-visible changes to the control's stringValue
+	public var stringValue: BindingTarget<String> {
+		return makeBindingTarget { $0.stringValue = $1 }
+	}
+
+	/// Provides changes to the control's stringValue, supplying new values when
+	/// the user concludes editing.
 	///
 	/// - note: If you require continuous updates as the user is typing, use
 	///         `continuousStringValue` instead.
-	public var stringValue: Binding<String> {
+	public var stringValues: Signal<String, NoError> {
 		var signal: Signal<String, NoError>!
 
 		NotificationCenter.default
@@ -24,8 +30,7 @@ extension Reactivity where Reactant: NSTextField {
 			.map { ($0.object as! NSTextField).stringValue }
 			.startWithSignal { innerSignal, _ in signal = innerSignal }
 
-		return Binding(signal: signal,
-		               target: makeBindingTarget { $0.stringValue = $1 })
+		return signal
 	}
 
 	/// Provides continuous changes to the control's stringValue, supplying new
