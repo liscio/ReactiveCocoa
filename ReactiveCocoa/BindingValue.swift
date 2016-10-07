@@ -106,14 +106,15 @@ public extension BindingValue where ValueType : Equatable {
     }
 }
 
-extension PropertyProtocol where Value: OptionalProtocol {	
-	/// Maps each property from `self` to a new property, then flattens the
-	/// resulting properties (into a single property), according to the
-	/// semantics of the given strategy.
+extension PropertyProtocol where Value: OptionalProtocol {
+	/// A utility overload for `flatMap` that maps all incoming optional values 
+	/// to `.noSelection` when they are nil, and applies the given 
+	/// transformation for all other values.
 	///
 	/// - parameters:
-	///   - strategy: The preferred flatten strategy.
-	///   - transform: The transform to be applied on `self` before flattening.
+	///   - strategy:  The preferred flatten strategy.
+	///   - transform: The transform to be applied on the `BindingValue` 
+	///                before flattening.
 	///
 	/// - returns: A property that sends the values of its inner properties.
 	public func flatMap<P: PropertyProtocol, T: Equatable>(_ strategy: FlattenStrategy, transform: @escaping (Value.Wrapped) -> P) -> Property<BindingValue<T>> where P.Value == BindingValue<T> {
@@ -129,31 +130,13 @@ extension PropertyProtocol where Value: OptionalProtocol {
 }
 
 extension BindingTargetProtocol where Self.Value: BindingValueProtocol {
-	/// Binds a signal to a target, updating the target's value to the latest
-	/// value sent by the signal.
-	///
-	/// - note: The binding will automatically terminate when the target is
-	///         deinitialized, or when the signal sends a `completed` event.
-	///
-	/// ````
-	/// let property = MutableProperty(0)
-	/// let signal = Signal({ /* do some work after some time */ })
-	/// property <~ signal
-	/// ````
-	///
-	/// ````
-	/// let property = MutableProperty(0)
-	/// let signal = Signal({ /* do some work after some time */ })
-	/// let disposable = property <~ signal
-	/// ...
-	/// // Terminates binding before property dealloc or signal's
-	/// // `completed` event.
-	/// disposable.dispose()
-	/// ````
+	/// A convenience overload for the `<~` operator that automatically wraps
+	/// all incoming values using the `BindingValue` type. This saves a lot of
+	/// duplicated `map` calls.
 	///
 	/// - parameters:
-	///   - target: A target to be bond to.
-	///   - signal: A signal to bind.
+	///   - target: The target that will consume incoming values on `signal`
+	///   - signal: The source of values to be applied to `target`
 	///
 	/// - returns: A disposable that can be used to terminate binding before the
 	///            deinitialization of the target or the signal's `completed`
