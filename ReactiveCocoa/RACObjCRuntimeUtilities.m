@@ -1,11 +1,3 @@
-//
-//  RACObjCRuntimeUtilities.m
-//  ReactiveCocoa
-//
-//  Created by Josh Abernathy on 3/18/13.
-//  Copyright (c) 2013 GitHub, Inc. All rights reserved.
-//
-
 #import "RACObjCRuntimeUtilities.h"
 #import <Foundation/Foundation.h>
 #import <objc/message.h>
@@ -37,7 +29,7 @@ static SEL RACAliasForSelector(SEL originalSelector) {
 
 static BOOL RACForwardInvocation(id self, NSInvocation *invocation) {
 	SEL aliasSelector = RACAliasForSelector(invocation.selector);
-	__block rac_receiver_t receiver = objc_getAssociatedObject(self, aliasSelector);
+	__block void(^receiver)(void) = objc_getAssociatedObject(self, aliasSelector);
 
 	Class class = object_getClass(invocation.target);
 	BOOL respondsToAlias = [class instancesRespondToSelector:aliasSelector];
@@ -257,7 +249,9 @@ static Class RACSwizzleClass(NSObject *self) {
 	return subclass;
 }
 
-BOOL RACRegisterBlockForSelector(NSObject *self, SEL selector, Protocol *protocol, rac_receiver_t receiver) {
+@implementation NSObject (RACObjCRuntimeUtilities)
+
+-(BOOL) _rac_setupInvocationObservationForSelector:(SEL)selector protocol:(Protocol *)protocol receiver:(void (^)(void))receiver {
 	SEL aliasSelector = RACAliasForSelector(selector);
 
 	__block void (^existingReceiver)(void) = objc_getAssociatedObject(self, aliasSelector);
@@ -308,3 +302,5 @@ BOOL RACRegisterBlockForSelector(NSObject *self, SEL selector, Protocol *protoco
 	
 	return YES;
 }
+
+@end

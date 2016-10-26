@@ -1,32 +1,29 @@
-//
-//  UIBarButtonItem.swift
-//  Rex
-//
-//  Created by Bjarke Hesthaven Søndergaard on 24/07/15.
-//  Copyright (c) 2015 Neil Pankey. All rights reserved.
-//
-
 import ReactiveSwift
 import UIKit
 
 extension Reactive where Base: UIBarButtonItem {
-	private var associatedAction: Atomic<CocoaAction<Base>?> {
-		return associatedObject(base,
-		                        key: &associatedActionKey,
-		                        initial: { _ in Atomic(nil) })
+	/// The current associated action of `self`.
+	private var associatedAction: Atomic<(action: CocoaAction<Base>, disposable: Disposable)?> {
+		return associatedValue { _ in Atomic(nil) }
 	}
 
+	/// The action to be triggered when the button is pressed. It also controls
+	/// the enabled state of the button.
 	public var pressed: CocoaAction<Base>? {
 		get {
-			return associatedAction.value
+			return associatedAction.value?.action
 		}
 
 		nonmutating set {
-			associatedAction.value = newValue
 			base.target = newValue
 			base.action = newValue.map { _ in CocoaAction<Base>.selector }
+
+			associatedAction
+				.swap(newValue.map { action in
+						let disposable = isEnabled <~ action.isEnabled
+						return (action, disposable)
+				})?
+				.disposable.dispose()
 		}
 	}
 }
-
-private var associatedActionKey = 0

@@ -1,11 +1,3 @@
-//
-//  UIControl+EnableSendActionsForControlEvents.swift
-//  Rex
-//
-//  Created by David Rodrigues on 24/04/16.
-//  Copyright © 2016 Neil Pankey. All rights reserved.
-//
-
 import UIKit
 
 private let rac_swizzleToken: Void = {
@@ -39,7 +31,7 @@ private let rac_swizzleToken: Void = {
 /// the pair target+action.
 extension UIControl {
 	override open class func initialize() {
-		if self !== UIControl.self {
+		guard self === UIControl.self else {
 			return
 		}
 
